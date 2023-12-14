@@ -1,0 +1,24 @@
+{
+  "name": "taxflowapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "api.js",
+  "scripts": {
+    "setup-project": "npm i && cd getAidememoire npm i",
+    "all": "concurrently --kill-others \"npm run server\" \"npm run client\"",
+    "server": "node api",
+    "client": "cd getAidememoire && npm run client",
+    "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\""
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "body-parser": "^1.20.2",
+    "concurrently": "^8.2.2",
+    "cors": "2.8.1",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mssql": "^6.2.1"
+  }
+}
