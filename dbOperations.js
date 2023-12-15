@@ -18,52 +18,86 @@ const config = {
     }
 };
 
+async function getClientToken(ClientID){
+    try {
+        var pool = await sql.connect(config);
+        let companyToken = await pool.request().query(
+            `
+                declare @ClientID nvarchar(18)  = ${ClientID}
+                select 
+                ClientGUID 
+                from ClientDetails where id = @ClientID
+            `
+        )
+        return companyToken.recordsets;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function getCompanyToken(ClientID){
+    try {
+        var pool = await sql.connect(config);
+        let companyToken = await pool.request().query(
+            `
+                declare @ClientID nvarchar(18)  = ${ClientID}
+                select 
+                Variable 
+                from Variables where type = 'CompanyAccessGuid'
+            `
+        )
+        return companyToken.recordsets;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 async function getClientAideMemoire(ClientID){
     try{
         var pool = await sql.connect(config);
         let AMRequired = await pool.request().query(
             `
-            declare @ClientID nvarchar(18)  = ${ClientID}
-            declare @organisation nvarchar(50) = (Select AllocatedTo from ClientDetails where id = @clientID)
-            declare @TaxYear nchar(4) = (select Variable from Variables where Type = 'CurrentYear')
-            declare @TaxYear1I int = CAST(@TaxYear as int) -1
-            declare @TaxYear1S nchar(4) = CAST(@TaxYear1I as nchar(4))
-            declare @TaxYear2I int = CAST(@TaxYear as int) -2
-            declare @TaxYear2S nchar(4) = CAST(@TaxYear2I as nchar(4))
-            Select 
-                    cqs.QuestionSet, 
-                    ISNULL(ast.NarrativeType, '') 
-                            as 'NarrativeType',
-                    REPLACE(
+                declare @ClientID nvarchar(18)  = ${ClientID}
+                declare @organisation nvarchar(50) = (Select AllocatedTo from ClientDetails where id = @clientID)
+                declare @TaxYear nchar(4) = (select Variable from Variables where Type = 'CurrentYear')
+                declare @TaxYear1I int = CAST(@TaxYear as int) -1
+                declare @TaxYear1S nchar(4) = CAST(@TaxYear1I as nchar(4))
+                declare @TaxYear2I int = CAST(@TaxYear as int) -2
+                declare @TaxYear2S nchar(4) = CAST(@TaxYear2I as nchar(4))
+                Select 
+                        cqs.QuestionSet, 
+                        ISNULL(ast.NarrativeType, '') 
+                                as 'NarrativeType',
                         REPLACE(
-                            REPLACE(ast.Narrative, 
-                                '[[Year]]', @TaxYear), 
-                                    '[[Year-1]]',@TaxYear1S), 
-                                        '[[Year-2]]',@TaxYear2S) 
-                            as 'Narrative', 
-                    ISNULL(CASE asr.Verified 
-                                WHEN 1 THEN 'Received' 
-                                WHEN 2 THEN 'Query'
-                                WHEN 3 THEN 'Pending'
-                                ELSE 'Not Recieved'
-                            END
-                    , '0') as 'Status',
-                    (select top(1) RequirementOrder from RequirementGroups where RequirementName = cqs.QuestionSet) as ReqOrder,
-                    isnull(ast.PDFRegionSize, 1) as Display
-                    from ClientQuestionSets cqs
-                        full outer join AssessmentStatus ast
-                            on ast.RequirementGroup = cqs.QuestionSet
-                        full outer join AssessmentResponse asr
-                            on asr.AssessmentShortCode = ast.ShortCode and asr.ClientID = @clientID
-                        full outer join ClientDetails cdt
-                            on cdt.ID = @clientID
-            where 
-                cqs.ClientID = @clientID and 
-                ast.OrganisationType = @organisation and 
-                isnull(asr.DisableNarrative, 0) = 0 and 
-                cqs.TaxYear = @TaxYear
-            order by ReqOrder,  isnull(ast.NarrativeType, 'z')    
-        `
+                            REPLACE(
+                                REPLACE(ast.Narrative, 
+                                    '[[Year]]', @TaxYear), 
+                                        '[[Year-1]]',@TaxYear1S), 
+                                            '[[Year-2]]',@TaxYear2S) 
+                                as 'Narrative', 
+                        ISNULL(CASE asr.Verified 
+                                    WHEN 1 THEN 'Received' 
+                                    WHEN 2 THEN 'Query'
+                                    WHEN 3 THEN 'Pending'
+                                    ELSE 'Not Recieved'
+                                END
+                        , '0') as 'Status',
+                        (select top(1) RequirementOrder from RequirementGroups where RequirementName = cqs.QuestionSet) as ReqOrder,
+                        isnull(ast.PDFRegionSize, 1) as Display
+                        from ClientQuestionSets cqs
+                            full outer join AssessmentStatus ast
+                                on ast.RequirementGroup = cqs.QuestionSet
+                            full outer join AssessmentResponse asr
+                                on asr.AssessmentShortCode = ast.ShortCode and asr.ClientID = @clientID
+                            full outer join ClientDetails cdt
+                                on cdt.ID = @clientID
+                where 
+                    cqs.ClientID = @clientID and 
+                    ast.OrganisationType = @organisation and 
+                    isnull(asr.DisableNarrative, 0) = 0 and 
+                    cqs.TaxYear = @TaxYear
+                order by ReqOrder,  isnull(ast.NarrativeType, 'z')    
+            `
         )
         return AMRequired.recordsets;
 
@@ -165,6 +199,8 @@ async function getClientAidememoireNotRequired(ClientID){
 module.exports = {
     getClientAideMemoire: getClientAideMemoire,
     getClientAidememoireDisabled: getClientAidememoireDisabled,
-    getClientAidememoireNotRequired: getClientAidememoireNotRequired
+    getClientAidememoireNotRequired: getClientAidememoireNotRequired,
+    getCompanyToken: getCompanyToken,
+    getClientToken: getClientToken
 }
 

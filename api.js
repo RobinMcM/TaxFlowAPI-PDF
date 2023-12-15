@@ -12,6 +12,18 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use('/api', router);
 
+router.route('/ClientToken/:id').get((request,response)=>{
+    dboperations.getClientToken(request.params.id).then(result => {
+        response.json(result[0]);
+    })
+});
+
+router.route('/CompanyToken/:id').get((request,response)=>{
+    dboperations.getCompanyToken(request.params.id).then(result => {
+        response.json(result[0]);
+    })
+});
+
 router.route('/AideMemoire/:id').get((request,response)=>{
     dboperations.getClientAideMemoire(request.params.id).then(result => {
         response.json(result[0]);

@@ -23,7 +23,7 @@ async function aidememore (ClientID, AMSelectionType, RowCount) {
     ]
     var apiEndpoint = `http://localhost:8900/api/${AMSelection[AMSelectionType]}/${ClientID}`;
     const res = await fetch(apiEndpoint);
-    console.log(apiEndpoint)
+    //console.log(apiEndpoint)
     let checkRowCount = RowCount;
     if( !res.ok) {
         throw new Error(`HTTP error ${res.status}`);
