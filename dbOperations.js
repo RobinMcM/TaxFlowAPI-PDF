@@ -40,10 +40,9 @@ async function getCompanyToken(ClientID){
         var pool = await sql.connect(config);
         let companyToken = await pool.request().query(
             `
-                declare @ClientID nvarchar(18)  = ${ClientID}
-                select 
-                Variable 
-                from Variables where type = 'CompanyAccessGuid'
+            select 
+            Result
+            from Variables where Variable = 'CompanyAccessGuid'
             `
         )
         return companyToken.recordsets;
