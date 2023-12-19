@@ -18,8 +18,8 @@ async function aidememore (ClientID, AMSelectionType, RowCount) {
             <tr>
                 <td style="color: #002387;"><strong>&nbsp;&nbsp;Information based on your previous year's return</strong></td>
             </tr>
-        </table>
-        <br />`,
+        </table> 
+        5 <br />`,
         //Aide Memoire Questions which have been Disabled by the TaxFlow Manager. 
         `<table style="width: 90%; margin-left: auto; margin-right: auto; border: 1px solid black; border-collapse: collapse;">
             <tr>
@@ -29,7 +29,8 @@ async function aidememore (ClientID, AMSelectionType, RowCount) {
             <tr>
                 <td style="color: #002387;"><strong>&nbsp;&nbsp;Not included in your current tax return</strong></td>
             </tr>
-        </table><br />`,
+        </table>
+        <br />`,
         //Aide Memoire Question which are currently available but not required. (Other possiblities areas to Coinsider on your next tax return)
         `<table style="width: 90%; margin-left: auto; margin-right: auto; border: 1px solid black; border-collapse: collapse;">
             <tr>
@@ -39,7 +40,8 @@ async function aidememore (ClientID, AMSelectionType, RowCount) {
             <tr>
                 <td style="color: #002387;"><strong>&nbsp;&nbsp;Other possible areas to consider for your current tax return</strong></td>
             </tr>
-        </table><br />`
+        </table>
+        <br />`
     ]
     //Grab the unformatted data from TaxFlow
     var apiEndpoint = `http://localhost:8900/api/${AMSelection[AMSelectionType]}/${ClientID}`;
@@ -50,7 +52,7 @@ async function aidememore (ClientID, AMSelectionType, RowCount) {
     const data =  await res.json();
 
     let checkRowCount = RowCount; 
-    if(AMSelectionType == 1 || AMSelectionType == 2 ){checkRowCount = checkRowCount - 5};
+    if(AMSelectionType == 1 || AMSelectionType == 2 ){checkRowCount = checkRowCount};
 
 
     var qs  = '' // Table Heading Question Set -- Switch for the header i.e. Pensions Employment etc
@@ -62,16 +64,16 @@ async function aidememore (ClientID, AMSelectionType, RowCount) {
     let table_count = 0
 
     var new_page_header = AMHeader[AMSelectionType] 
-    let row_count = 5 // this holds the row count for pagination and we allow 5 rows for the start
-    let page_size = 48
+    let row_count = checkRowCount + 5 // this holds the row count for pagination and we allow 5 rows for the start
+    let page_size = 51
     
     // Loops through the JSON Data to grab the entries, this has to be paged according to the page size 
     for(let i = 0; i < data.length; i++){
         if (qs != data[i].QuestionSet){
             qs = data[i].QuestionSet // Forces a header
+            row_count = row_count + 1 // this is the heading section currently one line
+            check_page = 0
             //check the size of the next table to force a new page if it wont fit
-            //check_page = 3 // this is the opening section of the page
-            //row_count = row_count + 1 // this is the heading section currently one line
             for(let c = 0; c < data.length; c++){ 
                 if (data[c].QuestionSet == qs){
                     check_page = check_page + Number(data[c].Display)
@@ -81,21 +83,24 @@ async function aidememore (ClientID, AMSelectionType, RowCount) {
                     cp = data[c].NarrativeType
                 }
             }
+
+            console.log(row_count, check_page)
             // if this will not fit onto the same page then generate a new page by inserting <br>'s 
-            if( row_count + check_page >= page_size){
+            //table_count = 0
+            //check_page = 0
+            if( row_count + check_page >= page_size - 4){
                     for(let n = row_count + table_count; n <= page_size; n ++ ){
                         new_page_header = new_page_header.concat('(',  n,  ')<br />&nbsp;') // this just inserts line-breaks (with space) to go to the next page
                     }
-                    row_count = 0
-                    table_count = 0
-                    check_page = 0
+                    row_count = 1
+                    //check_page = 0
             }
             //check_page = 0
             // Start building the table Header Stage
             result = result + new_page_header.concat('<table style="width: 90%; margin-left: auto; margin-right: auto; border: 1px solid black; border-collapse: collapse;">', 
                                                 '<tr style="text-align: center; background-color: ', 
                                                 AMSelection[AMSelectionType + 3], '; color: ', AMSelection[AMSelectionType + 6], '; border: 1px solid black; border-collapse: collapse;"><td ><strong>',
-                                                data[i].QuestionSet, check_page,'</strong></td><td></td></tr>'
+                                                data[i].QuestionSet, '  ',  row_count, '  (', check_page ,')</strong></td><td></td></tr>'
                                             )
             //insert the data into the Row sections
             for (let h = 0; h < data.length; h++){
@@ -103,11 +108,12 @@ async function aidememore (ClientID, AMSelectionType, RowCount) {
                 if (data[h].QuestionSet == qs){
                     if ( data[h].NarrativeType != hd) {
                         //The Request Type has changed (Narrative Type) so insert this into a new row
+                        row_count = row_count + 1
                         if (data[h].NarrativeType.length > 0){
                                                                 result = result.concat('<tr><td style="padding-left: 25px; border: 1px solid black; border-collapse: collapse; color: blue; "><strong>',  
-                                                                data[h].NarrativeType, ' - ', row_count,  '</strong></td><td></td></tr>'
+                                                                data[h].NarrativeType, ' - ', row_count, '</strong></td><td></td></tr>'
                                                                 )}
-                        row_count = row_count + 1
+
                     }
                     hd = data[h].NarrativeType
                     //we can now insert the Description (Narrative) and the Status into the Row

@@ -30,10 +30,10 @@ const server = http.createServer(async (req, res) => {
 
     if(clientid && clientToken.toUpperCase() == GetclientToken.toUpperCase() && companyToken.toUpperCase() == GetcompanyToken.toUpperCase()){
         const getAidememoire_0 = await aidememore(clientid, 0, 0)
-        //const getAidememoire_1 = await aidememore(clientid, 1, getAidememoire_0.row_count)
-        //const getAidememoire_2 = await aidememore(clientid, 2, getAidememoire_1.row_count)
-        //const data = getAidememoire_0.result + getAidememoire_1.result + getAidememoire_2.result
-        const data = getAidememoire_0.result
+        const getAidememoire_1 = await aidememore(clientid, 1, getAidememoire_0.row_count)
+        const getAidememoire_2 = await aidememore(clientid, 2, getAidememoire_1.row_count)
+        const data = getAidememoire_0.result + getAidememoire_1.result + getAidememoire_2.result
+        //const data = getAidememoire_0.result
         res.writeHead(200, {'Content-Type': 'text/html'});
         res.write(data);
     }
